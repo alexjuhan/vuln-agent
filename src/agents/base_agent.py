@@ -3,9 +3,17 @@ from langchain.tools import BaseTool
 from langchain.memory import ConversationBufferMemory
 from langchain.agents import AgentExecutor, create_structured_chat_agent
 from langchain.schema import AgentFinish
+from src.tools.vector_db_tool import VectorDBTool
+from src.utils.code_extractor import CodeExtractor
 
 class BaseSecurityAgent:
-    def __init__(self, llm_config: dict, tools: List[BaseTool]):
+    @classmethod
+    async def create(cls, llm_config: dict, tools: List[BaseTool]) -> 'BaseSecurityAgent':
+        instance = cls.__new__(cls)
+        await instance.__init__(llm_config, tools)
+        return instance
+
+    async def __init__(self, llm_config: dict, tools: List[BaseTool]):
         self.llm = create_structured_chat_agent(
             llm=llm_config["model"],
             tools=tools
@@ -17,6 +25,14 @@ class BaseSecurityAgent:
         )
         self.tools = tools
         self.memory = ConversationBufferMemory()
+        
+        # Initialize vector DB
+        self.vector_db = VectorDBTool()
+        tools.append(self.vector_db)
+        
+        # Index codebase
+        snippets = await CodeExtractor.extract_snippets("./src")
+        await self.vector_db.index_codebase(snippets)
         
     async def execute_task(self, task: str) -> AgentResponse:
         # Base execution logic
