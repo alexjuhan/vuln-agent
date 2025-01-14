@@ -2,6 +2,7 @@ from typing import Dict, List
 from ...analyzers.manager import AnalyzerManager
 from ...agents.vulnerability_agent import VulnerabilityAnalysisAgent
 from ...core.models.security_report import SecurityReport, Finding, Context
+from ..models.database import Finding, SecurityReport, create_finding_from_tool_result
 
 class VulnerabilityAnalysisWorkflow:
     def __init__(self, agent: VulnerabilityAnalysisAgent):
@@ -39,8 +40,10 @@ class VulnerabilityAnalysisWorkflow:
         # Convert raw results to Finding objects
         findings = []
         for tool_name, tool_results in raw_results.items():
-            findings.extend(Finding.from_tool_results(tool_name, tool_results))
-            
+            for result in tool_results:
+                finding = create_finding_from_tool_result(tool_name, result)
+                findings.append(finding)
+        
         return findings
     
     async def _run_dependency_analysis(self, repo_path: str) -> Dict:
