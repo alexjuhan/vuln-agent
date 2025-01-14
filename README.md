@@ -13,6 +13,7 @@ Static Application Security Testing (SAST) and Software Composition Analysis (SC
 Using LLMs’ contextual awareness and reasoning, we can analyze the tools’ findings and prioritize exploitable vulnerabilities. We’ll load the source code into a vector database to allow the agents to search it, coming up with their own hypothesis about vulnerabilities in the source code.
 
 MITRE’s Common Weakness Scoring System (CWSS) documentation describes the problem well: “Software developers often face hundreds or thousands of individual bug reports for weaknesses that are discovered in their code. In certain circumstances, a software weakness can even lead to an exploitable vulnerability. Due to this high volume of reported weaknesses, stakeholders are often forced to prioritize which issues they should investigate and fix first, often using incomplete information. In short, people need to be able to reason and communicate about the relative importance of different weaknesses.”
+
 The OWASP Web Security Testing Guide further describes the problem: “Static source code analysis alone cannot identify issues due to flaws in the design, since it cannot understand the context in which the code is constructed. Source code analysis tools are useful in determining security issues due to coding errors, however, significant manual effort is required to validate the findings.”
 
 ## What

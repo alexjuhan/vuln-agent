@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  codeql:
+    build: 
+      context: ./codeql
+    volumes:
+      - ${SOURCE_CODE_PATH}:/src:ro
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}  # For CodeQL database downloads
+    networks:
+      - security_net
+
+  semgrep:
+    build: 
+      context: ./semgrep
+    volumes:
+      - ${SOURCE_CODE_PATH}:/src:ro
+    networks:
+      - security_net
+
+  dependency_check:
+    build: 
+      context: ./dependency_check
+    volumes:
+      - ${SOURCE_CODE_PATH}:/src:ro
+      - dependency_data:/usr/share/dependency-check/data
+    networks:
+      - security_net
+
+networks:
+  security_net:
+    driver: bridge
+
+volumes:
+  dependency_data:  # Persistent cache for dependency-check 
