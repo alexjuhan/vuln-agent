@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, List
 from pathlib import Path
 from .base_agent import BaseSecurityAgent
-from src.analyzers.base_tool import BaseTool
+from src.tools.base_tool import BaseTool
 
 @dataclass
 class FindingContext:

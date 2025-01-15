@@ -3,7 +3,7 @@ from langchain.tools import BaseTool
 from langchain.memory import ConversationBufferMemory
 from langchain.agents import AgentExecutor, create_structured_chat_agent
 from langchain.schema import AgentFinish
-from src.tools.vector_db_tool import VectorDBTool
+from src.tools.vector_db.vector_db_tool import VectorDBTool
 from src.utils.code_extractor import CodeExtractor
 
 class BaseSecurityAgent:
