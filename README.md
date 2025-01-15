@@ -1,4 +1,4 @@
-# Web Application LLM Vulnerability Agent
+# Web Application AI Security Agent
 
 ## Project Idea
 
