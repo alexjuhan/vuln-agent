@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import Dict, List
 from pathlib import Path
 from .base_agent import BaseSecurityAgent
-from src.tools.base_tool import BaseTool
+from src.tools.base.base_tool import BaseTool
+from src.agents.prompts.system_prompt import TRIAGE_AGENT_PROMPT
 
 @dataclass
 class FindingContext:
@@ -14,6 +15,8 @@ class FindingContext:
 
 class TriageAgent(BaseSecurityAgent):
     def __init__(self, llm_config: dict, tools: List[BaseTool]):
+        # Use triage-specific prompt
+        llm_config["prompt"] = TRIAGE_AGENT_PROMPT
         super().__init__(llm_config, tools)
         self.analysis_cache = {}
         

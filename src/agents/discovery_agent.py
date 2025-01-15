@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Any
 from pathlib import Path
 from .base_agent import BaseSecurityAgent
+from .prompts.system_prompt import DISCOVERY_AGENT_PROMPT
 
 @dataclass
 class ProjectContext:
@@ -15,14 +16,16 @@ class ProjectContext:
     test_coverage: Dict[str, float]    # Existing test coverage metrics
 
 class DiscoveryAgent(BaseSecurityAgent):
-    def __init__(self, llm_config: dict, tools: List[BaseTool]):
+    @classmethod
+    async def create(cls, llm_config: dict, tools: List[BaseTool]) -> 'DiscoveryAgent':
         discovery_tools = [
             DependencyAnalyzerTool(),
             CodeAnalyzerTool(),
             ConfigAnalyzerTool(),
             TestCoverageAnalyzerTool()
         ]
-        super().__init__(llm_config, discovery_tools)
+        llm_config["prompt"] = DISCOVERY_AGENT_PROMPT
+        return await super().create(llm_config, discovery_tools + tools)
 
     async def analyze_project(self, repo_path: str) -> ProjectContext:
         """Perform comprehensive project discovery"""
