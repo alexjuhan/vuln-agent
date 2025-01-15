@@ -1,8 +1,8 @@
-from src.analyzers.base_tool import BaseTool
+from src.tools.base.base_tool import SecurityAnalysisTool
 from src.tools.vector_store import CodeVectorDB, CodeSnippet
 from typing import List
 
-class VectorDBTool(BaseTool):
+class VectorDBTool(SecurityAnalysisTool):
     name = "vector_db"
     description = "Tool for finding similar code patterns in the codebase"
     
