@@ -41,5 +41,55 @@ Implementation approach:
 - Vector database integration for codebase analysis
 - AI agents process tool outputs for intelligent vulnerability triage
 
-
+```mermaid
+graph TD
+    Start[Start Analysis] --> Discovery[Discovery Agent]
+    
+    subgraph "Discovery Phase"
+        Discovery --> TechStack[Analyze Tech Stack]
+        Discovery --> Dependencies[Analyze Dependencies]
+        Discovery --> Structure[Analyze Project Structure]
+        Discovery --> TestCov[Analyze Test Coverage]
+        
+        TechStack --> Context[Project Context]
+        Dependencies --> Context
+        Structure --> Context
+        TestCov --> Context
+        
+        Context --> ThreatModel[Generate Threat Model]
+        Context --> TestPlan[Generate Test Plan]
+    end
+    
+    subgraph "Vulnerability Analysis Phase"
+        TestPlan --> ToolSelect[Select Security Tools]
+        ToolSelect --> ParallelAnalysis[Run Parallel Analysis]
+        
+        ParallelAnalysis --> CodeQL[CodeQL Analysis]
+        ParallelAnalysis --> Semgrep[Semgrep Analysis]
+        ParallelAnalysis --> DepCheck[Dependency Check]
+        ParallelAnalysis --> CustomTools[Other Tools...]
+        
+        CodeQL --> Findings[Raw Findings]
+        Semgrep --> Findings
+        DepCheck --> Findings
+        CustomTools --> Findings
+    end
+    
+    subgraph "Triage Phase"
+        Findings --> Triage[Triage Agent]
+        Context --> Triage
+        
+        Triage --> DataFlow[Data Flow Analysis]
+        Triage --> PatternMatch[Pattern Matching]
+        Triage --> Sanitizers[Sanitizer Analysis]
+        
+        DataFlow --> Scoring[Confidence Scoring]
+        PatternMatch --> Scoring
+        Sanitizers --> Scoring
+        
+        Scoring --> FinalReport[Security Report]
+    end
+    
+    FinalReport --> End[End Analysis]
+```
 
