@@ -41,6 +41,7 @@ Implementation approach:
 - Vector database integration for codebase analysis
 - AI agents process tool outputs for intelligent vulnerability triage
 
+## Workflow
 ```mermaid
 graph TD
     Start[Start Analysis] --> Discovery[Discovery Agent]
