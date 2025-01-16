@@ -1,9 +1,11 @@
-from ..base.discovery_tool import DiscoveryTool
+from smolagents import Tool
 from typing import Dict, Any
 from pathlib import Path
 import ast
 
-class CodeAnalyzerTool(DiscoveryTool):
+class CodeAnalyzerTool(Tool):
+    name = "code_analyzer"
+    description = "Analyzes project structure, entry points, and data flows"
     """Analyzes project structure, entry points, and data flows"""
     
     async def analyze(self, path: str) -> Dict[str, Any]:
