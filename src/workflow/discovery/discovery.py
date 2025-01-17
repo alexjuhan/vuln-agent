@@ -87,3 +87,7 @@ def discover_project(local_path: str) -> dict:
     
     print(f"Discovery complete. Found project info: {project_info}")
     return project_info
+
+# TODO
+# - identify frameworks ie spring-boot, hibernate
+
