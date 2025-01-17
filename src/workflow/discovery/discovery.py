@@ -88,3 +88,7 @@ def discover_project(local_path: str) -> dict:
 # TODO
 # - identify frameworks ie spring-boot, hibernate
 # - treesitter parser
+# - more sophisticated data flow tracking with train tracking, inter-procedure analysis, etc
+# - additional entrypoint types - database, message queue, RPC, etc
+# - enhanved trust boundaries - network etc
+# - visualization graphs and diagrams
