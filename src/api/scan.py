@@ -1,5 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import json
+import sys
+from pathlib import Path
 
 class ScanHandler(BaseHTTPRequestHandler):
     SCAN_ENDPOINT = '/api/v1/scan'
@@ -14,11 +16,31 @@ class ScanHandler(BaseHTTPRequestHandler):
         try:
             request_data = self._parse_request_body()
             repository_url = self._validate_request(request_data)
+            
+            # Update the import to use the correct path
+            sys.path.append(str(Path(__file__).parent.parent))
+            from workflow.workflow import security_scan_workflow
+            from tempfile import mkdtemp
+            
+            # Create a temporary directory for cloning
+            local_path = mkdtemp()
+            
+            # Start the workflow asynchronously
+            # Note: In a production environment, you might want to use a proper task queue
+            import threading
+            thread = threading.Thread(
+                target=security_scan_workflow,
+                args=(repository_url, local_path)
+            )
+            thread.start()
+            
             self._send_success_response(repository_url)
         except json.JSONDecodeError:
             self._send_error_response(400, "Invalid JSON in request body")
         except ValueError as e:
             self._send_error_response(400, str(e))
+        except Exception as e:
+            self._send_error_response(500, f"Internal server error: {str(e)}")
 
     def _parse_request_body(self):
         content_length = int(self.headers['Content-Length'])
