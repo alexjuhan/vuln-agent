@@ -1,0 +1,50 @@
+{
+  "path": "/var/folders/05/0bf9jmln2k33fjr33txl24lh0000gn/T/tmpt4uvagsq",
+  "base_directory": "tmpt4uvagsq",
+  "file_tree": [
+    ".eslintrc.yml",
+    "Readme-Guide.md",
+    "LICENSE",
+    "Code-Of-Conduct.md",
+    "Triager-Guide.md",
+    "History.md",
+    "Collaborator-Guide.md",
+    "Release-Process.md",
+    "index.js",
+    ".npmrc",
+    ".editorconfig",
+    "Readme.md",
+    ".gitignore",
+    "package.json",
+    "Contributing.md",
+    "Charter.md",
+    ".eslintignore",
+    "Security.md",
+    // ... test files ...
+    // ... example files ...
+    // ... benchmark files ...
+    // ... lib files ...
+    // ... git files ...
+  ],
+  "languages": {
+    ".yml": 5,
+    ".md": 13,
+    ".js": 142,
+    ".json": 1,
+    ".txt": 11,
+    ".send": 1,
+    ".tmpl": 7,
+    ".html": 8,
+    ".css": 4,
+    ".hbs": 3,
+    ".ejs": 20,
+    ".idx": 1,
+    ".pack": 1,
+    ".sample": 13
+  },
+  "package_files": {
+    "npm": "{ ... }" // Package.json contents
+  },
+  "readme": "# Express\n...", // Readme contents
+  "file_count": 250
+}
