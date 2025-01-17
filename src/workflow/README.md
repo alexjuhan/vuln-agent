@@ -2,7 +2,7 @@ Vuln agent workflow
 
 Clone repo
 
-Project discovery
+1. Project discovery
 - file tree
 - dependencies
 - languages
@@ -13,16 +13,14 @@ Project discovery
 - security files
 - output: context 
 
-Vulnerability detection
+2. Vulnerability detection
 - CodeQL query selection
 - run CodeQL
 - run dependency-check
 - output: finding
 
-
-Triage agent
-- Vector search
+3. Triage agent
+- Vector search for similar code patterns
 - AST analysis
 - CodeQL query writer
 - learning from findings
-
