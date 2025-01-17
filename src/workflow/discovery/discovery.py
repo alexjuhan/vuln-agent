@@ -1,7 +1,4 @@
 import os
-import glob
-from pathlib import Path
-import json
 from typing import List, Dict
 from prefect import task
 
@@ -90,4 +87,4 @@ def discover_project(local_path: str) -> dict:
 
 # TODO
 # - identify frameworks ie spring-boot, hibernate
-
+# - treesitter parser

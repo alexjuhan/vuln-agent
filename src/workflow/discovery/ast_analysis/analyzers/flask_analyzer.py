@@ -1,5 +1,4 @@
 import ast
-from typing import Dict, Set
 from .base import BaseAnalyzer
 from ..patterns.flask_patterns import SOURCE_PATTERNS, SINK_PATTERNS, PROCESSOR_PATTERNS
 from ..models import DataFlow

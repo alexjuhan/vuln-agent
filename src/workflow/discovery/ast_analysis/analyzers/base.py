@@ -1,5 +1,5 @@
 import ast
-from typing import Dict, Set
+from typing import Dict, Set, List
 from ..models import DataFlow
 
 class BaseAnalyzer(ast.NodeVisitor):

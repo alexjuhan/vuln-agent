@@ -36,4 +36,4 @@ TRUST_BOUNDARIES = {
         'exit_points': {'session.save'},
         'sanitizers': {'session.sign', 'session.encrypt'}
     }
-} 
+}
