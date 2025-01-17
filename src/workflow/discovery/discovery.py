@@ -3,6 +3,7 @@ import glob
 from pathlib import Path
 import json
 from typing import List, Dict
+from prefect import task
 
 def get_directory_tree(start_path: str) -> List[str]:
     """Get a list of all files in the directory tree."""
@@ -58,6 +59,7 @@ def read_readme(local_path: str) -> str:
                 print(f"Error reading README: {e}")
     return ""
 
+@task
 def discover_project(local_path: str) -> dict:
     """
     Analyze a local repository to discover project information.
