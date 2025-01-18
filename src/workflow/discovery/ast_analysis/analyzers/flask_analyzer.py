@@ -4,14 +4,35 @@ from ..patterns.flask_patterns import SOURCE_PATTERNS, SINK_PATTERNS, PROCESSOR_
 from ..models import DataFlow
 
 class FlaskAnalyzer(BaseAnalyzer):
+    def __init__(self):
+        super().__init__()
+        print("[DEBUG] Initializing FlaskAnalyzer")
+        
+    def analyze(self, content: str, file_path: str):
+        """Override analyze to add debugging"""
+        print(f"[DEBUG] Starting Flask analysis of {file_path}")
+        try:
+            tree = ast.parse(content)
+            self.visit(tree)
+            print(f"[DEBUG] Completed Flask analysis of {file_path}")
+            print(f"[DEBUG] Found entry points: {self.entry_points}")
+            print(f"[DEBUG] Found data flows: {self.data_flows}")
+        except SyntaxError as e:
+            print(f"Syntax error in {file_path}: {str(e)}")
+        except Exception as e:
+            print(f"Error analyzing {file_path}: {str(e)}")
+
     def visit_FunctionDef(self, node: ast.FunctionDef):
         """Handle Flask-specific function analysis"""
+        print(f"\n[DEBUG] Analyzing function: {node.name}")
         super().visit_FunctionDef(node)
         
         # Check for route decorators
         for decorator in node.decorator_list:
+            print(f"[DEBUG] Found decorator: {ast.dump(decorator)}")
             if isinstance(decorator, ast.Call):
                 if hasattr(decorator.func, 'attr') and decorator.func.attr in ['route', 'get', 'post', 'put', 'delete']:
+                    print(f"[DEBUG] Found Flask route decorator: {decorator.func.attr}")
                     self._handle_route_decorator(node)
 
         # Track middleware and request processors
@@ -27,6 +48,7 @@ class FlaskAnalyzer(BaseAnalyzer):
 
     def _handle_route_decorator(self, node):
         """Handle Flask route decorator analysis"""
+        print(f"[DEBUG] Processing route decorator for function: {self.current_function}")
         self.entry_points.add(f"{self.current_function} (HTTP endpoint)")
         self.data_flows.append(
             DataFlow(
@@ -39,8 +61,10 @@ class FlaskAnalyzer(BaseAnalyzer):
 
     def visit_Assign(self, node: ast.Assign):
         """Track variable assignments"""
+        print(f"\n[DEBUG] Processing assignment in {self.current_function}")
         for target in node.targets:
             if isinstance(target, ast.Name):
+                print(f"[DEBUG] Assignment to variable: {target.id}")
                 # Track the variable in current scope
                 self.current_scope_variables[target.id] = {
                     'source': self.current_function,
@@ -49,6 +73,7 @@ class FlaskAnalyzer(BaseAnalyzer):
                 
                 # If the value is a call to a source function, track it
                 if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name):
+                    print(f"[DEBUG] Assignment value is function call: {node.value.func.id}")
                     if node.value.func.id in ['input', 'request.get_json', 'read', 'recv']:
                         self.variable_sources[target.id] = {
                             'type': 'external_input',
@@ -73,9 +98,11 @@ class FlaskAnalyzer(BaseAnalyzer):
         """Track data flows between request sources and response sinks"""
         if isinstance(node.func, ast.Attribute):
             if isinstance(node.func.value, ast.Name):
-                # Track request data access
                 attr_path = f"{node.func.value.id}.{node.func.attr}"
+                print(f"\n[DEBUG] Processing function call: {attr_path}")
+                
                 if attr_path in SOURCE_PATTERNS:
+                    print(f"[DEBUG] Found source pattern: {attr_path}")
                     if self.current_function:
                         source_name = f"{self.current_function}::{attr_path}"
                         self.variable_sources[self.current_function] = {
@@ -94,6 +121,7 @@ class FlaskAnalyzer(BaseAnalyzer):
                 
                 # Track response creation with source tracking
                 elif node.func.attr in SINK_PATTERNS:
+                    print(f"[DEBUG] Found sink pattern: {node.func.attr}")
                     if self.current_function:
                         source = (self.variable_sources.get(self.current_function, {})
                                 .get('location', self.current_function))

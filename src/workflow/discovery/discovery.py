@@ -1,6 +1,8 @@
 import os
-from typing import List, Dict
+from typing import List, Dict, Optional
 from prefect import task
+from .ast_analysis.analyzers.base import BaseAnalyzer
+from .ast_analysis.analyzers.flask_analyzer import FlaskAnalyzer
 
 def get_directory_tree(start_path: str) -> List[str]:
     """Get a list of all files in the directory tree."""
@@ -56,6 +58,46 @@ def read_readme(local_path: str) -> str:
                 print(f"Error reading README: {e}")
     return ""
 
+def detect_frameworks(files: List[str], package_files: Dict[str, str]) -> List[str]:
+    """Detect frameworks used in the project based on files and dependencies."""
+    frameworks = set()  # Use a set to avoid duplicates
+    
+    # Check package files for framework dependencies
+    if 'python' in package_files:
+        reqs = package_files['python'].lower()
+        if 'flask' in reqs and not any(f.endswith('flask.py') for f in files):
+            frameworks.add('flask')
+        if 'django' in reqs and any(f in files for f in ['manage.py', 'wsgi.py']):
+            frameworks.add('django')
+        if 'fastapi' in reqs:
+            frameworks.add('fastapi')
+    
+    # For Flask specifically, look for app patterns but exclude test files
+    flask_patterns = [
+        f for f in files 
+        if f.endswith('.py') 
+        and not f.startswith('test') 
+        and not '/tests/' in f
+        and any(pattern in f.lower() for pattern in ['app.py', 'application.py', 'wsgi.py'])
+    ]
+    
+    if flask_patterns:
+        frameworks.add('flask')
+    
+    return list(frameworks)
+
+def get_analyzer_for_framework(framework: str) -> Optional[BaseAnalyzer]:
+    """Get the appropriate analyzer for a given framework."""
+    analyzer_map = {
+        'flask': FlaskAnalyzer,
+        # Comment out unimplemented analyzers for now
+        # 'django': DjangoAnalyzer,
+        # 'fastapi': FastAPIAnalyzer,
+    }
+    
+    analyzer_class = analyzer_map.get(framework)
+    return analyzer_class() if analyzer_class else None
+
 @task
 def discover_project(local_path: str) -> dict:
     """
@@ -71,16 +113,80 @@ def discover_project(local_path: str) -> dict:
     
     # Get file tree
     files = get_directory_tree(local_path)
+    package_files = find_package_files(local_path)
+    
+    # Detect frameworks
+    frameworks = detect_frameworks(files, package_files)
+    
+    # Run framework-specific analysis
+    framework_analysis = {}
+    for framework in frameworks:
+        analyzer = get_analyzer_for_framework(framework)
+        if analyzer:
+            print(f"Running analysis for framework: {framework}")
+            try:
+                # Filter relevant Python files
+                relevant_files = [
+                    f for f in files 
+                    if f.endswith('.py') 
+                    and not f.startswith('test')
+                    and not '/tests/' in f
+                    and not '/examples/' in f
+                ]
+                
+                # Analyze Python files
+                for file in relevant_files:
+                    file_path = os.path.join(local_path, file)
+                    print(f"Analyzing file: {file_path}")
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            analyzer.analyze(content, file_path)
+                    except Exception as e:
+                        print(f"Error analyzing file {file_path}: {str(e)}")
+                        import traceback
+                        traceback.print_exc()
+                
+                # Only add analysis results if we found something
+                if analyzer.entry_points or analyzer.data_flows:
+                    framework_analysis[framework] = {
+                        'entry_points': list(analyzer.entry_points),
+                        'data_flows': [flow.to_dict() for flow in analyzer.data_flows],
+                        'variables': list(analyzer.scope_variables)
+                    }
+                    print(f"Found analysis results for {framework}:")
+                    print(f"Entry points: {analyzer.entry_points}")
+                    print(f"Data flows: {analyzer.data_flows}")
+                else:
+                    print(f"No analysis results found for {framework}")
+                    
+            except Exception as e:
+                print(f"Error analyzing {framework} framework: {str(e)}")
+                import traceback
+                traceback.print_exc()
     
     project_info = {
         "path": local_path,
         "base_directory": os.path.basename(local_path),
         "file_tree": files,
         "languages": detect_languages(files),
-        "package_files": find_package_files(local_path),
+        "package_files": package_files,
         "readme": read_readme(local_path),
-        "file_count": len(files)
+        "file_count": len(files),
+        "frameworks": frameworks,
+        "framework_analysis": framework_analysis
     }
+    
+    # Write project info to JSON file in scanner root directory
+    scanner_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    output_path = os.path.join(scanner_root, 'project_discovery.json')
+    try:
+        import json
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(project_info, f, indent=2, sort_keys=True)
+        print(f"Project info written to: {output_path}")
+    except Exception as e:
+        print(f"Error writing project info to file: {str(e)}")
     
     print(f"Discovery complete. Found project info: {project_info}")
     return project_info

@@ -8,6 +8,18 @@ class DataFlow:
     path: List[str]
     variables_involved: Set[str]
 
+    def to_dict(self) -> dict:
+        """Convert the DataFlow object to a dictionary representation"""
+        return {
+            'source': self.source,
+            'sink': self.sink,
+            'path': self.path,
+            'variables_involved': list(self.variables_involved)  # Convert set to list for JSON serialization
+        }
+
+    def __repr__(self):
+        return f"DataFlow(source='{self.source}', sink='{self.sink}', path={self.path}, variables_involved={self.variables_involved})"
+
 @dataclass
 class TrustBoundary:
     name: str

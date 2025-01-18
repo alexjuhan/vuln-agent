@@ -10,6 +10,21 @@ class BaseAnalyzer(ast.NodeVisitor):
         self.variable_sources: Dict[str, Dict] = {}
         self.current_scope_variables: Dict[str, Dict] = {}
 
+    @property
+    def scope_variables(self) -> Set[str]:
+        """Get all variables tracked across all scopes"""
+        return set(self.current_scope_variables.keys())
+
+    def analyze(self, content: str, file_path: str):
+        """Base analyze method that parses and visits the AST"""
+        try:
+            tree = ast.parse(content)
+            self.visit(tree)
+        except SyntaxError as e:
+            print(f"Syntax error in {file_path}: {str(e)}")
+        except Exception as e:
+            print(f"Error analyzing {file_path}: {str(e)}")
+
     def visit_FunctionDef(self, node: ast.FunctionDef):
         """Base function definition visitor"""
         prev_function = self.current_function
