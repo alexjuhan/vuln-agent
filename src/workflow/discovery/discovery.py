@@ -28,7 +28,7 @@ def find_package_files(local_path: str) -> Dict[str, str]:
     """Find and read package manager files."""
     package_files = {
         'npm': 'package.json',
-        'python': ['requirements.txt', 'pyproject.toml'],  # Updated to list of files
+        'python': ['requirements.txt', 'pyproject.toml'],
         'ruby': 'Gemfile',
         'php': 'composer.json',
         'rust': 'Cargo.toml',
@@ -66,7 +66,7 @@ def read_readme(local_path: str) -> str:
 
 def detect_frameworks(files: List[str], package_files: Dict[str, str]) -> List[str]:
     """Detect frameworks used in the project based on files and dependencies."""
-    frameworks = set()  # Use a set to avoid duplicates
+    frameworks = set()
     
     # Check package files for framework dependencies
     if 'python' in package_files:
@@ -198,9 +198,7 @@ def discover_project(local_path: str) -> dict:
     return project_info
 
 # TODO
-# - identify frameworks ie spring-boot, hibernate
-# - treesitter parser
 # - more sophisticated data flow tracking with train tracking, inter-procedure analysis, etc
 # - additional entrypoint types - database, message queue, RPC, etc
-# - enhanved trust boundaries - network etc
-# - visualization graphs and diagrams
+# - enhanced trust boundaries - network etc
+# - treesitter parser
