@@ -1,5 +1,5 @@
 from typing import Dict, List, Any
-from ...agents.vulnerability_agent import VulnerabilityAnalysisAgent
+from ...agents.vulnerability.vulnerability_agent import VulnerabilityAnalysisAgent
 from ...agents.triage_agent import TriageAgent
 from ...core.models.security_report import SecurityReport, Finding, Context
 from ..models.database import Finding, SecurityReport
