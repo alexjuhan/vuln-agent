@@ -28,21 +28,27 @@ def find_package_files(local_path: str) -> Dict[str, str]:
     """Find and read package manager files."""
     package_files = {
         'npm': 'package.json',
-        'python': 'requirements.txt',
+        'python': ['requirements.txt', 'pyproject.toml'],  # Updated to list of files
         'ruby': 'Gemfile',
         'php': 'composer.json',
         'rust': 'Cargo.toml',
     }
     
     found_files = {}
-    for pkg_type, filename in package_files.items():
-        file_path = os.path.join(local_path, filename)
-        if os.path.exists(file_path):
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    found_files[pkg_type] = f.read()
-            except Exception as e:
-                print(f"Error reading {filename}: {e}")
+    for pkg_type, filenames in package_files.items():
+        # Convert single filename to list for consistent handling
+        if isinstance(filenames, str):
+            filenames = [filenames]
+            
+        for filename in filenames:
+            file_path = os.path.join(local_path, filename)
+            if os.path.exists(file_path):
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        # Store with filename as key to distinguish between multiple files
+                        found_files[f"{pkg_type}:{filename}"] = f.read()
+                except Exception as e:
+                    print(f"Error reading {filename}: {e}")
     return found_files
 
 def read_readme(local_path: str) -> str:
@@ -179,7 +185,7 @@ def discover_project(local_path: str) -> dict:
     
     # Write project info to JSON file in scanner root directory
     scanner_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    output_path = os.path.join(scanner_root, 'project_discovery.json')
+    output_path = os.path.join(scanner_root, 'project_context.json')
     try:
         import json
         with open(output_path, 'w', encoding='utf-8') as f:
