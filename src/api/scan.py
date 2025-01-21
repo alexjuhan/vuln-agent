@@ -17,9 +17,8 @@ class ScanHandler(BaseHTTPRequestHandler):
             request_data = self._parse_request_body()
             repository_url = self._validate_request(request_data)
             
-            # Update the import to use the correct path
-            sys.path.append(str(Path(__file__).parent.parent))
-            from workflow.workflow import security_scan_workflow
+            # Import workflow module
+            from core.workflow.workflow import security_scan_workflow
             from tempfile import mkdtemp
             
             # Create a temporary directory for cloning

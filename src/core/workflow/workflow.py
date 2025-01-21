@@ -1,6 +1,6 @@
 from prefect import flow, task
 import git
-from workflow.discovery.discovery import discover_project
+from core.workflow.discovery.discovery import discover_project
 
 @task
 def clone_repo(repo_url: str, local_path: str):
