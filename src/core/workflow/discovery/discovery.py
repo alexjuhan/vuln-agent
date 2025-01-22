@@ -68,15 +68,53 @@ def detect_frameworks(files: List[str], package_files: Dict[str, str]) -> List[s
     """Detect frameworks used in the project based on files and dependencies."""
     frameworks = set()
     
-    # Check package files for framework dependencies
-    if 'python' in package_files:
-        reqs = package_files['python'].lower()
+    # Check Python package files for framework dependencies
+    python_files = [f for f in package_files.keys() if f.startswith('python:')]
+    for python_file in python_files:
+        reqs = package_files[python_file].lower()
         if 'flask' in reqs and not any(f.endswith('flask.py') for f in files):
             frameworks.add('flask')
         if 'django' in reqs and any(f in files for f in ['manage.py', 'wsgi.py']):
             frameworks.add('django')
         if 'fastapi' in reqs:
             frameworks.add('fastapi')
+    
+    # Check all package.json files (root and nested) for framework dependencies
+    npm_files = [f for f in package_files.keys() if f.endswith('package.json')]
+    for npm_file in npm_files:
+        try:
+            import json
+            package_json = json.loads(package_files[npm_file])
+            dependencies = {
+                **package_json.get('dependencies', {}),
+                **package_json.get('devDependencies', {})
+            }
+            scripts = package_json.get('scripts', {})
+            
+            # Check for common Node.js frameworks
+            if 'next' in dependencies:
+                frameworks.add('nextjs')
+            if 'express' in dependencies:
+                frameworks.add('express')
+            if 'react' in dependencies or 'react-dom' in dependencies:
+                frameworks.add('react')
+            if 'vue' in dependencies:
+                frameworks.add('vue')
+            if '@nestjs/core' in dependencies:
+                frameworks.add('nestjs')
+            if 'gatsby' in dependencies:
+                frameworks.add('gatsby')
+            if 'nuxt' in dependencies:
+                frameworks.add('nuxt')
+            
+            # Enhanced Angular detection
+            if '@angular/core' in dependencies:
+                frameworks.add('angular')
+            elif any('ng ' in cmd for cmd in scripts.values()):  # Look for Angular CLI commands
+                frameworks.add('angular')
+            
+        except json.JSONDecodeError:
+            print(f"Error parsing {npm_file}")
     
     # For Flask specifically, look for app patterns but exclude test files
     flask_patterns = [
@@ -89,6 +127,21 @@ def detect_frameworks(files: List[str], package_files: Dict[str, str]) -> List[s
     
     if flask_patterns:
         frameworks.add('flask')
+    
+    # Look for framework-specific files and patterns
+    for file in files:
+        file_lower = file.lower()
+        # Next.js patterns
+        if any(pattern in file_lower for pattern in ['next.config.js', 'pages/_app.js', 'pages/_app.tsx']):
+            frameworks.add('nextjs')
+        # Express.js patterns
+        if file_lower.endswith(('app.js', 'server.js', 'index.js')):
+            file_content = package_files.get(file, '')
+            if 'express' in file_content.lower():
+                frameworks.add('express')
+        # Angular patterns
+        if any(pattern in file_lower for pattern in ['angular.json', '.angular-cli.json', 'ng-module.ts']):
+            frameworks.add('angular')
     
     return list(frameworks)
 
@@ -177,7 +230,7 @@ def discover_project(local_path: str) -> dict:
         "file_tree": files,
         "languages": detect_languages(files),
         "package_files": package_files,
-        "readme": read_readme(local_path),
+#        "readme": read_readme(local_path),
         "file_count": len(files),
         "frameworks": frameworks,
         "framework_analysis": framework_analysis
