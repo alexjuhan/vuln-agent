@@ -3,6 +3,7 @@ from typing import List, Dict, Optional
 from prefect import task
 from .ast_analysis.analyzers.base import BaseAnalyzer
 from .ast_analysis.analyzers.flask_analyzer import FlaskAnalyzer
+from .ast_analysis.analyzers.express_analyzer import ExpressAnalyzer
 
 def get_directory_tree(start_path: str) -> List[str]:
     """Get a list of all files in the directory tree."""
@@ -66,21 +67,37 @@ def read_readme(local_path: str) -> str:
 
 def detect_frameworks(files: List[str], package_files: Dict[str, str]) -> List[str]:
     """Detect frameworks used in the project based on files and dependencies."""
+    print("\n=== Starting Framework Detection ===")
     frameworks = set()
     
     # Check Python package files for framework dependencies
     python_files = [f for f in package_files.keys() if f.startswith('python:')]
+    print(f"Found Python package files: {python_files}")
+    
     for python_file in python_files:
         reqs = package_files[python_file].lower()
-        if 'flask' in reqs and not any(f.endswith('flask.py') for f in files):
-            frameworks.add('flask')
-        if 'django' in reqs and any(f in files for f in ['manage.py', 'wsgi.py']):
-            frameworks.add('django')
+        print(f"Analyzing requirements in {python_file}")
+        
+        if 'flask' in reqs:
+            print("Found Flask in requirements")
+            if not any(f.endswith('flask.py') for f in files):
+                frameworks.add('flask')
+                print("Added Flask framework")
+        
+        if 'django' in reqs:
+            print("Found Django in requirements")
+            if any(f in files for f in ['manage.py', 'wsgi.py']):
+                frameworks.add('django')
+                print("Added Django framework")
+                
         if 'fastapi' in reqs:
             frameworks.add('fastapi')
-    
-    # Check all package.json files (root and nested) for framework dependencies
+            print("Added FastAPI framework")
+
+    # Check package.json files
     npm_files = [f for f in package_files.keys() if f.endswith('package.json')]
+    print(f"\nFound NPM package files: {npm_files}")
+    
     for npm_file in npm_files:
         try:
             import json
@@ -149,6 +166,7 @@ def get_analyzer_for_framework(framework: str) -> Optional[BaseAnalyzer]:
     """Get the appropriate analyzer for a given framework."""
     analyzer_map = {
         'flask': FlaskAnalyzer,
+        'express': ExpressAnalyzer,
         # Comment out unimplemented analyzers for now
         # 'django': DjangoAnalyzer,
         # 'fastapi': FastAPIAnalyzer,
@@ -168,54 +186,66 @@ def discover_project(local_path: str) -> dict:
     Returns:
         dict: Dictionary containing discovered project information
     """
-    print(f"Starting project discovery for path: {local_path}")
+    print("\n=== Starting Project Discovery ===")
+    print(f"Analyzing path: {local_path}")
     
-    # Get file tree
+    print("\nGathering file tree...")
     files = get_directory_tree(local_path)
+    print(f"Found {len(files)} files")
+    
+    print("\nReading package files...")
     package_files = find_package_files(local_path)
+    print(f"Found package files: {list(package_files.keys())}")
     
-    # Detect frameworks
+    print("\nDetecting frameworks...")
     frameworks = detect_frameworks(files, package_files)
+    print(f"Detected frameworks: {frameworks}")
     
-    # Run framework-specific analysis
+    print("\nStarting framework-specific analysis...")
     framework_analysis = {}
     for framework in frameworks:
         analyzer = get_analyzer_for_framework(framework)
         if analyzer:
-            print(f"Running analysis for framework: {framework}")
+            print(f"\nAnalyzing {framework} framework...")
             try:
-                # Filter relevant Python files
-                relevant_files = [
-                    f for f in files 
-                    if f.endswith('.py') 
-                    and not f.startswith('test')
-                    and not '/tests/' in f
-                    and not '/examples/' in f
-                ]
+                # Filter relevant files based on framework
+                if framework == 'express':
+                    relevant_files = [
+                        f for f in files 
+                        if f.endswith(('.js', '.ts')) 
+                        and not f.startswith('test')
+                        and not '/tests/' in f
+                        and not '/frontend/' in f
+                        and not 'spec.' in f
+                        and ('/routes/' in f  # Focus on routes directory
+                             or 'app.ts' in f  # Main application file
+                             or 'server.ts' in f)  # Server setup file
+                    ]
+                    print(f"Found {len(relevant_files)} relevant Express files")
+                else:
+                    relevant_files = []
                 
-                # Analyze Python files
+                # Analyze files
                 for file in relevant_files:
                     file_path = os.path.join(local_path, file)
-                    print(f"Analyzing file: {file_path}")
+                    print(f"\nAnalyzing file: {file}")
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
                             content = f.read()
                             analyzer.analyze(content, file_path)
                     except Exception as e:
-                        print(f"Error analyzing file {file_path}: {str(e)}")
-                        import traceback
-                        traceback.print_exc()
+                        print(f"Error analyzing file {file}: {str(e)}")
                 
-                # Only add analysis results if we found something
+                # Store analysis results
                 if analyzer.entry_points or analyzer.data_flows:
                     framework_analysis[framework] = {
                         'entry_points': list(analyzer.entry_points),
                         'data_flows': [flow.to_dict() for flow in analyzer.data_flows],
                         'variables': list(analyzer.scope_variables)
                     }
-                    print(f"Found analysis results for {framework}:")
-                    print(f"Entry points: {analyzer.entry_points}")
-                    print(f"Data flows: {analyzer.data_flows}")
+                    print(f"\nAnalysis results for {framework}:")
+                    print(f"Entry points: {len(analyzer.entry_points)}")
+                    print(f"Data flows: {len(analyzer.data_flows)}")
                 else:
                     print(f"No analysis results found for {framework}")
                     
