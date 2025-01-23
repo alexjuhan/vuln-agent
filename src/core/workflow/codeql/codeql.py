@@ -109,3 +109,61 @@ def build_codeql_database(project_path: str, languages: Dict[str, int]) -> Optio
     except Exception as e:
         print(f"Unexpected error creating CodeQL database: {str(e)}")
         return None
+
+@task
+def run_codeql_analysis(database_path: str, main_language: str) -> Optional[str]:
+    """
+    Run CodeQL analysis on the created database and generate SARIF output.
+    
+    Args:
+        database_path (str): Path to the CodeQL database
+        main_language (str): The main programming language of the project
+        
+    Returns:
+        Optional[str]: Path to the SARIF output file, or None if analysis failed
+    """
+    print("\n=== Starting CodeQL Analysis ===")
+    
+    # Generate output file path
+    project_dir = os.path.dirname(database_path)
+    project_name = os.path.basename(os.path.dirname(database_path))
+    sarif_path = os.path.join(project_dir, f"{project_name}-analysis.sarif")
+    
+    # Build the CodeQL analysis command
+    cmd = [
+        "codeql",
+        "database",
+        "analyze",
+        "--format=sarif-latest",
+        f"--output={sarif_path}",
+        "--",
+        database_path,
+        f"codeql/{main_language}-queries"
+    ]
+    
+    print(f"Running CodeQL analysis command: {' '.join(cmd)}")
+    
+    try:
+        # Run the CodeQL analysis command
+        result = subprocess.run(
+            cmd,
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        print("Analysis output:", result.stdout)
+        
+        if os.path.exists(sarif_path):
+            print(f"Successfully created SARIF output at: {sarif_path}")
+            return sarif_path
+        else:
+            print("Analysis failed: SARIF output file not found")
+            return None
+            
+    except subprocess.CalledProcessError as e:
+        print(f"Error running CodeQL analysis: {str(e)}")
+        print("Error output:", e.stderr)
+        return None
+    except Exception as e:
+        print(f"Unexpected error during CodeQL analysis: {str(e)}")
+        return None

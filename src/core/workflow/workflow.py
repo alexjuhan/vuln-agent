@@ -1,7 +1,7 @@
 from prefect import flow, task
 import git
 from core.workflow.discovery.discovery import discover_project
-from core.workflow.codeql.codeql import build_codeql_database
+from core.workflow.codeql.codeql import build_codeql_database, run_codeql_analysis
 
 @task
 def clone_repo(repo_url: str, local_path: str):
@@ -40,7 +40,16 @@ def security_scan_workflow(repo_url: str, local_path: str):
         print("CodeQL database creation failed")
         raise Exception("Failed to create CodeQL database")
     
-    # Add database path to project info
+    # Fourth step: Run CodeQL analysis
+    print("Step 4: Running CodeQL analysis...")
+    main_language = project_info["languages"]  # Get the main language from project info
+    sarif_path = run_codeql_analysis(database_path, main_language)
+    if not sarif_path:
+        print("CodeQL analysis failed")
+        raise Exception("Failed to run CodeQL analysis")
+    
+    # Add paths to project info
     project_info["codeql_database"] = database_path
+    project_info["sarif_output"] = sarif_path
     
     return project_info
