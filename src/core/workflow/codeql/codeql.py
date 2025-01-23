@@ -75,7 +75,7 @@ def build_codeql_database(project_path: str, languages: Dict[str, int]) -> Optio
     
     # Build the CodeQL database creation command
     cmd = [
-        "./codeql",  # CodeQL binary at root directory
+        "codeql",  # CodeQL binary at root directory
         "database",
         "create",
         "--language=" + main_language,
