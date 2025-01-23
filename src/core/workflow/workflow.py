@@ -1,6 +1,7 @@
 from prefect import flow, task
 import git
 from core.workflow.discovery.discovery import discover_project
+from core.workflow.codeql.codeql import build_codeql_database
 
 @task
 def clone_repo(repo_url: str, local_path: str):
@@ -31,5 +32,15 @@ def security_scan_workflow(repo_url: str, local_path: str):
     print("Step 2: Running project discovery...")
     project_info = discover_project(local_path)
     print(f"Project discovery completed. Found info: {project_info}")
+    
+    # Third step: Build CodeQL database
+    print("Step 3: Building CodeQL database...")
+    database_path = build_codeql_database(local_path, project_info["languages"])
+    if not database_path:
+        print("CodeQL database creation failed")
+        raise Exception("Failed to create CodeQL database")
+    
+    # Add database path to project info
+    project_info["codeql_database"] = database_path
     
     return project_info
