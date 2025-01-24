@@ -29,24 +29,9 @@ class Mitigation:
     description: str = ""
 
 @dataclass
-class ValidationAndTesting:
-    name: str = ""
-    description: str = ""
-
-@dataclass
 class Documentation:
     threat_model_documentation: str = ""
     update_frequency: str = ""
-
-@dataclass
-class EducationAndTraining:
-    name: str = ""
-    description: str = ""
-
-@dataclass
-class Scope:
-    components: List[str] = field(default_factory=list)
-    objectives: List[str] = field(default_factory=list)
 
 @dataclass
 class AttackSurface:
@@ -69,16 +54,15 @@ class ThreatModel:
     application_name: str = ""
     version: str = ""
     business_context: BusinessContext = field(default_factory=BusinessContext)
-    scope: Scope = field(default_factory=Scope)
+    components: List[str] = field(default_factory=list)
+    entrypoints: List[str] = field(default_factory=list)
     attack_surface: AttackSurface = field(default_factory=AttackSurface)
     threats: List[Threat] = field(default_factory=list)
     vulnerabilities: List[Vulnerability] = field(default_factory=list)
     exploit_paths: List[ExploitPath] = field(default_factory=list)
     risk_prioritization: List[RiskPrioritization] = field(default_factory=list)
     mitigations: List[Mitigation] = field(default_factory=list)
-    validation_and_testing: List[ValidationAndTesting] = field(default_factory=list)
     documentation: Documentation = field(default_factory=Documentation)
-    education_and_training: List[EducationAndTraining] = field(default_factory=list)
 
 # Example Usage
 if __name__ == "__main__":
@@ -88,8 +72,8 @@ if __name__ == "__main__":
     # Populate with example data
     threat_model.application_name = "Example Web Application"
     threat_model.version = "1.0"
-    threat_model.scope.components = ["frontend", "backend", "database"]
-    threat_model.scope.objectives = ["Handle sensitive data", "Provide user authentication"]
+    threat_model.components = ["frontend", "backend", "database"]
+    threat_model.entrypoints = ["web", "api"]
 
     threat_model.threats.append(Threat(name="Spoofing", description="An attacker impersonates a user or system."))
     threat_model.vulnerabilities.append(Vulnerability(name="Input Validation", description="Lack of proper input validation."))
